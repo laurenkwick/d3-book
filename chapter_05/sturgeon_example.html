@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: Loading data from a CSV file</title>
+		<script type="text/javascript" src="../d3.js"></script>
+
+		<style type="text/css">
+
+			div.bar {
+				display: inline-block;
+				width: 20px;
+				height: 75px;
+				background-color: teal;
+				margin-right: 2px;
+			}
+
+		</style>
+
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			var dataset
+
+			var rowConverter = function(d) {
+				return {
+					Hub: d.Hub,
+					Count: parseFloat(d.Count),
+					HubLatitude: parseFloat(d.HubLatitude),
+					HubLongitude: parseFloat(d.HubLongitude)
+				};
+			}
+
+			d3.csv("sturgeon_data.csv", rowConverter, function(error, data) {
+
+				if (error) { // If error is not null, something went wrong
+					console.log(error); // Log the error
+
+				} else { // If no error, the file loaded correctly
+					console.log(data); // Log the data
+					dataset = data;
+
+					var w = 500;
+					var h = 500;
+
+					d3.select("body").selectAll("p")
+					.data(dataset) // Counts and parses data values
+					.enter() // Create new, data-bound elements (1 per data element)
+					.append("p") // Append 'p' to each element in the DOM
+					.text(function(d) { 
+						return d.Hub + " " + d.Count; 
+						}) //  Insert text value of 'Count' column from the data array
+					.style("color", function(d) {
+						if (d.Count>400) {
+							return "red";
+						} else {
+							return "black"
+						}
+					});
+
+					d3.select("body").selectAll("div")
+						.data(dataset)
+						.enter()
+						.append("div")
+						.attr("class", "bar")
+						.style("height", function(d) { 
+							var barHeight = d.Count * 0.05;
+							return barHeight + "px";
+						});
+
+					var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+					var circles = svg.selectAll("circle")
+									.data(dataset)
+									.enter()
+									.append("circle");
+
+					circles.attr("cx", function(d, i) {
+						return (i *50) +25;
+					})
+					.attr("cy", h/2)
+					.attr("r", function(d) {
+						var count = d.Count * 0.1
+						return count;
+					});
+				}
+			});
+
+		</script>
+	</body>
+</html>

@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script src="https://unpkg.com/esri-leaflet@3.0.12/dist/esri-leaflet.js"></script>
+
+<script src="https://unpkg.com/esri-leaflet-webmap@1.0.0/dist/esri-leaflet-webmap.js"></script>
+
+// Replace 'YOUR_WEBMAP_ID' with the ID of 'test_basemap'
+const webmapId = 'YOUR_WEBMAP_ID_HERE';
+
+const map = L.esri.webMap(webmapId, {
+  container: 'map' // The ID of your <div>
+}).on('load', function() {
+  console.log('Web Map Loaded!');
+});
