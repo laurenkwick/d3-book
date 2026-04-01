@@ -5,18 +5,6 @@
 		<title>D3: Loading data from a CSV file</title>
 		<script type="text/javascript" src="../d3.js"></script>
 
-		<style type="text/css">
-
-			div.bar {
-				display: inline-block;
-				width: 20px;
-				height: 75px;
-				background-color: teal;
-				margin-right: 2px;
-			}
-
-		</style>
-
 	</head>
 	<body>
 		<script type="text/javascript">
@@ -44,31 +32,6 @@
 					var w = 1500;
 					var h = 500;
 
-					d3.select("body").selectAll("p")
-					.data(dataset) // Counts and parses data values
-					.enter() // Create new, data-bound elements (1 per data element)
-					.append("p") // Append 'p' to each element in the DOM
-					.text(function(d) { 
-						return d.Hub + " " + d.Count; 
-						}) //  Insert text value of 'Count' column from the data array
-					.style("color", function(d) {
-						if (d.Count>400) {
-							return "red";
-						} else {
-							return "black"
-						}
-					});
-
-					d3.select("body").selectAll("div")
-						.data(dataset)
-						.enter()
-						.append("div")
-						.attr("class", "bar")
-						.style("height", function(d) { 
-							var barHeight = d.Count * 0.05;
-							return barHeight + "px";
-						});
-
 					var svg = d3.select("body")
 						.append("svg")
 						.attr("width", w)
@@ -86,6 +49,11 @@
 					.attr("r", function(d) {
 						var count = d.Count * 0.02
 						return count;
+					})
+					.attr("fill", "yellow")
+					.attr("stroke", "orange")
+					.attr("stroke-width", function(d) {
+						return (d.Count*0.01);
 					});
 				}
 			});
