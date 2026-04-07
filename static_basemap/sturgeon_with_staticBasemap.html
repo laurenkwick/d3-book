@@ -110,6 +110,7 @@
 						};
 					};
 
+
 					d3.queue()
 						.defer(d3.csv, "sturgeon_data.csv", hubConverter)
 						.defer(d3.csv, "sturgeon_details.csv", detailConverter)
@@ -135,6 +136,7 @@
 									svg.selectAll(".sturgeon-detail").remove();
 								});
 
+							
 							// Draw Hubs
 							var circles = svg.selectAll(".hub")
 								.data(hubData)
@@ -215,6 +217,8 @@
 		                  					// Stop the click from "bubbling up" to the basemap/hub
 		                  					d3.event.stopPropagation();
 		                  					console.log(detailID)
+		                  					console.log(allObservations)
+		                  					console.log(uniqueMap)
 
 		                  					// Fade other IDs
 		                  					burstGroup.selectAll(".sturgeon-detail")
@@ -238,7 +242,7 @@
 		                  							<p><strong>ID:</strong> ${detailID.ID}</p>
 		                  							<p><strong>Sex:</strong> ${detailID.Sex}</p>
 		                  							<p><strong>Fork Length:</strong> ${detailID.Length}</p>
-		                  							<button type="button">Play timelapse!</button>
+		                  							<button type="button" onclick="plotTimeLapse(${detailID.ID})">Play timelapse!</button>
 		                  						</div>
 		                  					`);
 
