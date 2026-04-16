@@ -60,17 +60,17 @@
 		</div>
 				<script type="text/javascript">
 
-					// 1. Setup dimensions (Match the PNG aspect ratio)
+					// Setup dimensions (Match the PNG aspect ratio)
 					const width = 1280;
 					const height = 810;
 
-					// 2. Define the geogrpahic bounds of the PNG (decimal degrees)
+					// Define the geogrpahic bounds of the PNG (decimal degrees)
 					const imageBounds = [
 						[-77.5994421, 37.6184908], // [Long, Lat] of top-left
 						[-76.5776466, 37.1045584] // [Long, Lat] of bottom-right
 					];
 
-					// 3. Initialize the SVG and Projection
+					// Initialize the SVG and Projection
 					const svg = d3.select("#map-container")
 						.append("svg")
 						.attr("viewBox", `0 0 ${width} ${height}`)
@@ -83,13 +83,13 @@
 							coordinates: imageBounds
 						});
 
-					// 4. Create a scale for circle size
+					// Create a scale for circle size
 					const radiusScale = d3.scaleSqrt().range([5,30]);
 
-					// 5. Initialize tooltip
+					// Initialize tooltip
 					var tooltip = d3.select("#tooltip");
 
-					// 6. Load the CSV
+					// Load the CSV
 
 					var hubConverter = function(d) {
 						return {
@@ -109,7 +109,6 @@
 							DateTime: d["Date.Time"]
 						};
 					};
-
 
 					d3.queue()
 						.defer(d3.csv, "sturgeon_data.csv", hubConverter)
@@ -135,7 +134,87 @@
 										.style("opacity", 1);
 									svg.selectAll(".sturgeon-detail").remove();
 								});
+							// Define functions
+							function singleAnimation(d) {
 
+
+								const ID = d.ID;
+								const timelapseData = detailData.filter(obs => obs.ID === d.ID);
+
+								const timelapseWithCoords = timelapseData.map(function(e) {
+									return Object.assign({}, e, hubData.reduce(function(acc, val) {
+										if (val.Hub == e.Hub) {
+											return val
+										} else {
+											return acc
+										}
+									}, {}))
+								});
+
+								var idPings = svg.selectAll(".pings")
+									.data(timelapseWithCoords)
+									.enter()
+									.append("circle")
+									.attr("class", "hub")
+									.attr("cx", function(d, i) {
+										// projection() returns [x,y]
+										const randX = (Math.random()*2) - 1;
+										return projection([d.HubLongitude, d.HubLatitude])[0] + randX;
+									})
+									.attr("cy", function(d, i) {
+										const randY = (Math.random()*2) - 1
+										return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
+									})
+									.attr("r", 4);
+
+
+								console.log(timelapseWithCoords);
+							}
+
+							// Function to update the sidebar when an individual sturgeon is selected
+							function updateSidebar(detailID) {
+								const sidebar = d3.select(".sidebar");
+
+								sidebar.html(`
+									<div style="padding: 20px;">
+										<h2> Sturgeon Detail </h2>
+										<p><strong>ID:</strong> ${detailID.ID}</p>
+										<p><strong>Sex:</strong> ${detailID.Sex}</p>
+										<p><strong>Fork Length:</strong> ${detailID.Length}</p>
+										<button id="play-button" type="button">Play timelapse!</button>
+									</div>
+								`);
+
+								const button = d3.select("#play-button");
+
+								button.on("click", function() {
+									singleAnimation(detailID);
+								});
+
+
+							};
+
+							// Function to style circle when indivdual sturgeon is selected
+							function handleDetailClick(d, i, nodes) {
+								// 'd' is the detail data
+								d3.event.stopPropagation();
+
+								// Update Sidebar - calls function to add sturgeon details to sidebar
+								updateSidebar(d);
+
+								// Update fade all other sturgeon circles
+								d3.selectAll(".sturgeon-detail")
+									.transition().duration(500)
+									.style("opacity", 0.6)
+									.attr("r", 3);
+
+								// Increase size and opacity for selected sturgeon.
+								d3.select(nodes[i])
+									.raise()
+									.transition().duration(500)
+									.style("opacity", 1)
+									.attr("r", 8);
+							};
 							
 							// Draw Hubs
 							var circles = svg.selectAll(".hub")
@@ -191,7 +270,7 @@
 
 
 		                  			// Create the burst
-		                  			burstGroup.selectAll(".sturgeon-detail")
+		                  			const detailCircles = burstGroup.selectAll(".sturgeon-detail")
 		                  				.data(matches)
 		                  				.enter()
 		                  				.append("circle")
@@ -213,42 +292,7 @@
 		                        		.on("mouseout", function() {
 		                        			tooltip.style("opacity", 0)
 		                        			})
-		                  				.on("click", function(detailID) {
-		                  					// Stop the click from "bubbling up" to the basemap/hub
-		                  					d3.event.stopPropagation();
-		                  					console.log(detailID)
-		                  					console.log(allObservations)
-		                  					console.log(uniqueMap)
-
-		                  					// Fade other IDs
-		                  					burstGroup.selectAll(".sturgeon-detail")
-		                  						.transition()
-		                  						.duration(500)
-		                  						.style("opacity", 0.6)
-		                  						.attr("stroke-width", 0.5)
-		                  						.attr("r", 3);
-		                  					
-		                  					d3.select(this)
-		                  						.raise()
-		                  						.transition()
-		                  						.duration(500)
-		                  						.style("opacity", 1)
-		                  						.attr("r", 8)
-		                  						.attr("stroke-width", 2);
-
-		                  					d3.select(".sidebar").html(`
-		                  						<div style="padding: 20px;">
-		                  							<h2> Sturgeon Detail </h2>
-		                  							<p><strong>ID:</strong> ${detailID.ID}</p>
-		                  							<p><strong>Sex:</strong> ${detailID.Sex}</p>
-		                  							<p><strong>Fork Length:</strong> ${detailID.Length}</p>
-		                  							<button type="button" onclick="plotTimeLapse(${detailID.ID})">Play timelapse!</button>
-		                  						</div>
-		                  					`);
-
-
-
-		                  				})
+		                  				.on("click", handleDetailClick)
 		                  				.transition()
 		                  				.duration(800)
 		                  				.delay((d, i) => i * 30) 
@@ -279,7 +323,6 @@
 		                  					return hubY + radius * Math.sin(angle);
 		                  				})
 		                  				.attr("r", 4);
-		                  				
 
 						});
 
