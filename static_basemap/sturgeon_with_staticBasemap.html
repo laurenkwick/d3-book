@@ -151,6 +151,8 @@
 									}, {}))
 								});
 
+								svg.selectAll(".sturgeon-detail").remove();
+
 								var idPings = svg.selectAll(".pings")
 									.data(timelapseWithCoords)
 									.enter()
@@ -158,17 +160,16 @@
 									.attr("class", "hub")
 									.attr("cx", function(d, i) {
 										// projection() returns [x,y]
-										const randX = (Math.random()*2) - 1;
+										const randX = (Math.random()*4) - 2;
 										return projection([d.HubLongitude, d.HubLatitude])[0] + randX;
 									})
 									.attr("cy", function(d, i) {
-										const randY = (Math.random()*2) - 1
+										const randY = (Math.random()*4) - 2
 										return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
 									})
 									.attr("r", 4);
 
-
-								console.log(timelapseWithCoords);
+								console.log("hi");
 							}
 
 							// Function to update the sidebar when an individual sturgeon is selected
@@ -254,7 +255,7 @@
 
 		                  			// Fade other hubs and details
 		                  			circles.transition().duration(500).style("opacity", 0.3);
-		                  			svg.selectAll(".sturgeon-detail").remove()
+		                  			svg.selectAll(".sturgeon-detail").remove();
 
 		                  			// Filter details data
 		                  			const allObservations = detailData.filter(obs => obs.Hub === clickedHubName);
