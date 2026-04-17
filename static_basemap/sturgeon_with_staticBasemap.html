@@ -106,6 +106,7 @@
 							ID: d.ID,
 							Length: parseFloat(d["Animal.Length..m."]),
 							Sex: d["Animal.Sex"],
+							Date: d["Date"],
 							DateTime: d["Date.Time"]
 						};
 					};
@@ -137,6 +138,62 @@
 							// Define functions
 							function singleAnimation(d) {
 
+								// Grabbing start date and end date from the detailData set to set timelapse parameters
+								// Weeks start at 4am
+								// https://stackoverflow.com/questions/5619202/parsing-a-string-to-a-date-in-javascript
+								const dateCol = detailData.map(function(item){return item.Date}).sort() // Extract date column from detailData and sort
+
+								const startDateParts = (dateCol[0]).split("-"); // Get first day from detailsData
+								const startDate = new Date(startDateParts[0], startDateParts[1] -1, startDateParts[2], "04", "00", "00"); // Convert to date object
+								const startDateAxis = new Date(startDateParts[0], startDateParts[1] -1, startDateParts[2], "00", "00", "00"); // Adding a buffer for formatting the time axis
+
+								const endDateParts = (dateCol.at(-1)).split("-"); // Get last day from detailsData 
+								const endDate = new Date(endDateParts[0], endDateParts[1] -1, endDateParts[2], "3", "59", "59"); // Convert to date object 
+								const endDateAxis = new Date(endDateParts[0], endDateParts[1] -1, endDateParts[2], "12", "59", "59"); // Adding a buffer for formatting the time axis
+
+								// Create vector of startDate to endDate, incrementing by 1 minute (10080 minutes per week)
+								const timeFrame = d3.timeMinute.range(startDate, endDate);
+
+								// Set width and height variables for plotting the axes
+								const wStart = 800;
+								const wEnd = wStart + 500
+								const h = 800;
+								const padding = 40;
+
+								//Create scale functions
+								xScale = d3.scaleTime()
+											   .domain([
+													startDateAxis,
+													endDateAxis
+												])
+											   .range([wStart, wEnd - padding]);
+
+
+								//Define X axis
+								xAxis = d3.axisBottom()
+												  .scale(xScale)
+												  .ticks(d3.timeDay.every(1));
+
+								const timeCircle = svg.append("circle")
+									.attr("r", 5)
+									.attr("cy", 750)
+									.attr("cx", xScale(startDate)) 
+									.style("fill", "red");
+
+								timeCircle.transition()
+									.duration(10000)
+									.ease(d3.easeLinear)
+									.attr("cx", xScale(endDate));
+
+								//Create X axis
+					   			const timeBar = svg.append("g")
+					   				.attr("class", "axis")
+					   				.attr("transform", "translate(0," + (h - padding) + ")")
+					   				.call(xAxis);
+								
+
+
+
 
 								const ID = d.ID;
 								const timelapseData = detailData.filter(obs => obs.ID === d.ID);
@@ -153,10 +210,35 @@
 
 								svg.selectAll(".sturgeon-detail").remove();
 
+								var idPings = svg
+									.data(timelapseWithCoords)
+									.append("circle")
+									.attr("r", 5)
+									.attr("cy", 50)
+									.attr("cx", 50)
+									.style("fill", "red");
+
+								idPings.transition()
+									.duration(10)
+									//.data(timelapseWithCoords)
+									.attr("cx", function(d, i) {
+										// projection() returns [x,y]
+										const randX = (Math.random()*4) - 2;
+										return projection([d.HubLongitude, d.HubLatitude])[0] + randX;
+									})
+									.attr("cy", function(d, i) {
+										const randY = (Math.random()*4) - 2
+										return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
+									})
+									.attr("r", 4);
+
+								/*		
 								var idPings = svg.selectAll(".pings")
 									.data(timelapseWithCoords)
 									.enter()
 									.append("circle")
+									.transition()
+									.duration(1000)
 									.attr("class", "hub")
 									.attr("cx", function(d, i) {
 										// projection() returns [x,y]
@@ -168,6 +250,7 @@
 										return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
 									})
 									.attr("r", 4);
+								*/
 
 								console.log("hi");
 							}
