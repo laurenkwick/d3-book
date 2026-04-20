@@ -210,9 +210,62 @@
 
 								svg.selectAll(".sturgeon-detail").remove();
 
+								var pings = svg
+									.data(timelapseWithCoords)
+									.append("circle")
+									.attr("class", "node-deals")
+									.attr("r", 5)
+									.attr("cy", 50)
+									.attr("cx", 50)
+									.style("fill", "red");
+								/*
+								var pings = d3.select("#chart");
+								pings.append("circle")
+									.attr("class", "pings")
+									.selectAll("circle")
+									.data( timelapseWithCoords)
+									.enter()
+									.append("circle")
+									.attr("class", "ping-deals")
+									.attr("cx", function(d, i) {
+										// projection() returns [x,y]
+										const randX = (Math.random()*4) - 2;
+										return projection([d.HubLongitude, d.HubLatitude])[0] + randX;
+									})
+									.attr("cy", function(d, i) {
+										const randY = (Math.random()*4) - 2
+										return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
+									})
+									.attr("r", 4);*/
+								console.log(pings);
+								
+
+								var animation = pings.selectAll("circle.ping-deals")
+									.transition()
+									.duration(250);
+
+								for (let j = 0; j < timelapseWithCoords.length; j++) {
+									animation = animation.transition()
+										.duration(750)
+										.delay(750)
+										.attr("cx", function(d, i) {
+										// projection() returns [x,y]
+										const randX = (Math.random()*4) - 2;
+										return projection([d.HubLongitude, d.HubLatitude])[0] + randX;
+										})
+										.attr("cy", function(d, i) {
+											const randY = (Math.random()*4) - 2
+											return projection([d.HubLongitude, d.HubLatitude])[1] + randY;
+										})
+										.attr("r", 4);
+
+								}
+
+								/*
 								var idPings = svg
 									.data(timelapseWithCoords)
 									.append("circle")
+									.attr("class", "node-deals")
 									.attr("r", 5)
 									.attr("cy", 50)
 									.attr("cx", 50)
@@ -232,7 +285,7 @@
 									})
 									.attr("r", 4);
 
-								/*		
+										
 								var idPings = svg.selectAll(".pings")
 									.data(timelapseWithCoords)
 									.enter()
