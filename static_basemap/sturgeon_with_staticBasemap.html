@@ -156,21 +156,50 @@
 								const times = 672 // number of 15 minute intervals in a week
 								const arrayIncrement = []; // initialize
 
+
 								for (let i = 0; i < times; ++i) {
 									const u = i * 900000;
 									const v = new Date(start + u);
-									arrayIncrement.push(v);
+									const dict = {
+										DateTime: v,
+										HubLatitude: null,
+										HubLongitude: null
+									}
+									arrayIncrement.push(dict); // Create an array of dictionaries so we can join them on DateTime
 								}
-								console.log(arrayIncrement);
-
 
 								const timelapseData = detailData.filter(obs => obs.ID === d.ID);
 
 								const timelapseWithCoords = timelapseData.map(function(e) {
 									const hub = hubData.find(h => h.Hub === e.Hub) || {};
+									e.DateTime = new Date(e.DateTime); // update from string to DateTime 
 									return { ...e, ...hub };
 								}).sort((a, b) => new Date(a.Date) - new Date(b.date));
-								console.log(timelapseWithCoords);
+
+								// Change loop condition to length - 1 so i + 1 exists
+								for (let i = 0; i < arrayIncrement.length; ++i) {
+								    const startTime = arrayIncrement[i].DateTime.getTime();
+								    
+								    var endTime = null
+								    if (i == (arrayIncrement.length - 1)) {
+								    	endTime = arrayIncrement[i].DateTime.getTime() + 900000;
+								    } else {
+								    	endTime = arrayIncrement[i + 1].DateTime.getTime();
+								    }
+
+								    const pingMatches = timelapseWithCoords.filter(({ DateTime }) => {
+								        const timeValue = DateTime.getTime();
+								        // Check if the time falls strictly within the window
+								        return timeValue >= startTime && timeValue < endTime;
+								    });
+
+								    if (pingMatches.length > 0) {
+								    	arrayIncrement[i].HubLatitude = pingMatches[0].HubLatitude;
+								    	arrayIncrement[i].HubLongitude = pingMatches[0].HubLongitude;
+								    };
+								}
+
+								console.log(arrayIncrement)
 
 								svg.selectAll(".ping-traveler").remove(); // clean up old animations
 								svg.selectAll(".sturgeon-detail").remove(); // remove sturgeon-detail rings for a clean animation
@@ -179,19 +208,32 @@
 									.attr("class", "ping-traveler")
 									.attr("r", 5)
 									.style("fill", "red")
-									.attr("cx", projection([timelapseWithCoords[0].HubLongitude, timelapseWithCoords[0].HubLatitude])[0])
-									.attr("cy", projection([timelapseWithCoords[0].HubLongitude, timelapseWithCoords[0].HubLatitude])[1]);
+									.attr("cx", projection([arrayIncrement[0].HubLongitude, arrayIncrement[0].HubLatitude])[0])
+									.attr("cy", projection([arrayIncrement[0].HubLongitude, arrayIncrement[0].HubLatitude])[1]);
 
 								// Chain the transitions
-								let transitionChain = traveler.transition().duration(250);
+								let transitionChain = traveler.transition().duration(100);
 
-								timelapseWithCoords.forEach((pos, index) => {
-									if (index == 0) return;
+								arrayIncrement.forEach((pos, index) => {
+									if (index === 0) return;
+
+									const hasCoords = pos.HubLongitude !== null && pos.HubLatitude != null;
+
+									if (hasCoords) {
+										const [nextX, nextY] = projection([pos.HubLongitude, pos.HubLatitude]);
+										const jitterX = nextX + (Math.random() * 4 -2);
+										const jitterY = nextY + (Math.random() * 4 -2);
 
 									transitionChain = transitionChain.transition()
-										.duration(250)
-										.attr("cx", projection([pos.HubLongitude, pos.HubLatitude])[0] + (Math.random() * 4 - 2))
-										.attr("cy", projection([pos.HubLongitude, pos.HubLatitude])[1] + (Math.random() * 4 - 2));
+											.duration(100)
+											.style("opacity", 1)
+											.attr("cx", jitterX)
+											.attr("cy", jitterY);
+									} else {
+										transitionChain = transitionChain.transition()
+											.duration(100)
+											.style("opacity", 0);
+									}
 
 								});
 
