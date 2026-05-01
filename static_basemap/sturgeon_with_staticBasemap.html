@@ -153,12 +153,12 @@
 
 								const start = startDate.getTime(); // convert from date to milliseconds
 								const end = endDate.getTime() + 1000; // convert from date to milliseconds
-								const times = 672 // number of 15 minute intervals in a week
+								const times = 168 // number of 60 minute intervals in a week
 								const arrayIncrement = []; // initialize
 
 
 								for (let i = 0; i < times; ++i) {
-									const u = i * 900000;
+									const u = i * 3600000; // number of milliseconds in an hour
 									const v = new Date(start + u);
 									const dict = {
 										DateTime: v,
@@ -182,7 +182,7 @@
 								    
 								    var endTime = null
 								    if (i == (arrayIncrement.length - 1)) {
-								    	endTime = arrayIncrement[i].DateTime.getTime() + 900000;
+								    	endTime = arrayIncrement[i].DateTime.getTime() + 3600000;
 								    } else {
 								    	endTime = arrayIncrement[i + 1].DateTime.getTime();
 								    }
@@ -212,7 +212,7 @@
 									.attr("cy", projection([arrayIncrement[0].HubLongitude, arrayIncrement[0].HubLatitude])[1]);
 
 								// Chain the transitions
-								let transitionChain = traveler.transition().duration(100);
+								let transitionChain = traveler.transition().duration(250);
 
 								arrayIncrement.forEach((pos, index) => {
 									if (index === 0) return;
@@ -225,13 +225,13 @@
 										const jitterY = nextY + (Math.random() * 4 -2);
 
 									transitionChain = transitionChain.transition()
-											.duration(100)
+											.duration(250)
 											.style("opacity", 1)
 											.attr("cx", jitterX)
 											.attr("cy", jitterY);
 									} else {
 										transitionChain = transitionChain.transition()
-											.duration(100)
+											.duration(250)
 											.style("opacity", 0);
 									}
 
